@@ -1,0 +1,22 @@
+{
+  "frontend/src/App.tsx": "Main application component managing authentication flow and routing between login, shop, and admin pages with orange/amber gradient background theme.",
+  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations with mutations that display backend error messages directly without frontend-side authorization blocking for buy/create actions.",
+  "frontend/src/pages/LoginPage.tsx": "English-language login page with orange/amber gradient theme that validates usernames, calls backend login to receive role, and passes admin status to local auth store based on backend response.",
+  "frontend/src/pages/ShopPage.tsx": "Shop page displaying products in Normal and Free tabs with English UI, orange/amber theme, and automatic product refetch when purchase dialog closes.",
+  "frontend/src/pages/AdminPage.tsx": "Admin dashboard with product management and purchase request handling, featuring opaque dialog backgrounds for product creation form.",
+  "frontend/src/components/Header.tsx": "Application header with solid opaque background, orange/amber gradient logo, username display, and logout button.",
+  "frontend/src/components/Footer.tsx": "Footer component with orange/amber gradient text styling, dynamic year, and caffeine.ai attribution with UTM tracking.",
+  "frontend/src/components/UserProfileSetup.tsx": "Profile setup component allowing users to select their username from the allowed list on first login.",
+  "frontend/src/components/ProductCard.tsx": "Product card component with orange/amber theme displaying product images from imageData or fallback icon, with sold-out overlay and English labels.",
+  "frontend/src/components/PurchaseDialog.tsx": "Purchase dialog with opaque background displaying product details and allowing purchase requests without frontend authorization checks.",
+  "frontend/src/index.css": "Global styles with OKLCH color system for orange/amber theme and CSS overrides ensuring all Radix UI popover/menu/select content has fully opaque backgrounds.",
+  "frontend/src/hooks/useCustomAuth.ts": "Custom authentication hook using Zustand with persistence, managing username-based login with optional isAdmin parameter derived from backend role, storing auth state in localStorage.",
+  "frontend/src/hooks/useActor.ts": "Actor initialization hook that calls initializeAccessControl only once during app lifecycle using a module-level flag to prevent repeated admin role assignments on re-login.",
+  "frontend/src/main.tsx": "Application entry point wrapping the app with QueryClientProvider and ThemeProvider for data management and theme support.",
+  "frontend/src/components/ThemeProvider.tsx": "ThemeProvider wrapper component using next-themes to enable dark/light mode switching with system theme detection.",
+  "backend/main.mo": "Backend canister with stable storage for products and purchases, now returns PurchaseWithId type that includes the actual Map key (purchase ID) along with purchase data for proper ID tracking across deletions.",
+  "frontend/src/backend.d.ts": "TypeScript interface definitions for backend canister including PurchaseWithId type with bigint id field and Purchase data, matching the backend's return type for purchase queries.",
+  "frontend/src/components/Banner.tsx": "Fixed position banner component displaying scrolling marquee text about purchase process issues with yellow background and continuous horizontal animation.",
+  "frontend/src/lib/productImage.ts": "Helper function to resolve product image sources, preferring imageData (data URL) when present with backward compatibility for legacy /assets references.",
+  "frontend/tailwind.config.js": "Tailwind configuration with Inter font family and standard theme extension for the orange/amber color system."
+}

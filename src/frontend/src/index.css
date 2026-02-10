@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: oklch(100% 0 0);
+    --foreground: oklch(20% 0 0);
+    --card: oklch(100% 0 0);
+    --card-foreground: oklch(20% 0 0);
+    --popover: oklch(100% 0 0);
+    --popover-foreground: oklch(20% 0 0);
+    --primary: oklch(65% 0.18 45);
+    --primary-foreground: oklch(100% 0 0);
+    --secondary: oklch(96% 0.01 45);
+    --secondary-foreground: oklch(20% 0 0);
+    --muted: oklch(96% 0.01 45);
+    --muted-foreground: oklch(50% 0.01 45);
+    --accent: oklch(96% 0.01 45);
+    --accent-foreground: oklch(20% 0 0);
+    --destructive: oklch(55% 0.22 25);
+    --destructive-foreground: oklch(100% 0 0);
+    --border: oklch(90% 0.01 45);
+    --input: oklch(90% 0.01 45);
+    --ring: oklch(65% 0.18 45);
+    --radius: 0.5rem;
+    --chart-1: oklch(65% 0.18 45);
+    --chart-2: oklch(70% 0.15 60);
+    --chart-3: oklch(60% 0.12 30);
+    --chart-4: oklch(75% 0.10 80);
+    --chart-5: oklch(55% 0.14 20);
+  }
+
+  .dark {
+    --background: oklch(20% 0.01 45);
+    --foreground: oklch(98% 0 0);
+    --card: oklch(20% 0.01 45);
+    --card-foreground: oklch(98% 0 0);
+    --popover: oklch(20% 0.01 45);
+    --popover-foreground: oklch(98% 0 0);
+    --primary: oklch(70% 0.18 45);
+    --primary-foreground: oklch(15% 0.01 45);
+    --secondary: oklch(25% 0.02 45);
+    --secondary-foreground: oklch(98% 0 0);
+    --muted: oklch(25% 0.02 45);
+    --muted-foreground: oklch(65% 0.02 45);
+    --accent: oklch(25% 0.02 45);
+    --accent-foreground: oklch(98% 0 0);
+    --destructive: oklch(50% 0.20 25);
+    --destructive-foreground: oklch(98% 0 0);
+    --border: oklch(30% 0.02 45);
+    --input: oklch(30% 0.02 45);
+    --ring: oklch(70% 0.18 45);
+    --chart-1: oklch(70% 0.18 45);
+    --chart-2: oklch(75% 0.15 60);
+    --chart-3: oklch(65% 0.12 30);
+    --chart-4: oklch(80% 0.10 80);
+    --chart-5: oklch(60% 0.14 20);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Ensure all Radix UI popover/select/menu content has opaque backgrounds */
+@layer components {
+  [data-radix-popper-content-wrapper] [role="menu"],
+  [data-radix-popper-content-wrapper] [role="listbox"],
+  [data-radix-select-content],
+  [data-radix-dropdown-menu-content],
+  [data-radix-context-menu-content],
+  [data-radix-popover-content] {
+    background-color: hsl(var(--popover)) !important;
+  }
+}

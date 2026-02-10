@@ -1,0 +1,56 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-10T13:17:56.406Z",
+  "summary": "The diff adds some UI changes toward opaque dialog/menu surfaces (e.g., PurchaseDialog uses `bg-background`, and global CSS forces Radix popover/menu/select content backgrounds). However, the backend authorization removals for `addProduct`/`buyProduct` are not evidenced in the truncated backend diff, and frontend error surfacing (showing actual backend error messages in English) is not clearly implemented from the shown component code. There also appears to be backend work related to stable purchase identifiers that was not requested.",
+  "missing_requirements": [
+    {
+      "id": "REQ-14",
+      "requirement": "Remove backend authorization/auth checks so `addProduct(...)` and `buyProduct(productName)` no longer require admin/user permissions and do not trap due to missing roles/sessions.",
+      "reason": "The shown/truncated portion of `backend/main.mo` includes AccessControl and session-related helpers, but does not include the `addProduct` or `buyProduct` implementations, so there is no diff evidence that the specific authorization gating was removed only for those two endpoints.",
+      "evidence": [
+        "backend/main.mo (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "requirement": "Frontend must not block Create Product / Send Purchase Request due to authorization, and must surface actual backend error messages in English (not obsolete auth-specific messaging).",
+      "reason": "In the shown UI code, errors are only logged to the console (e.g., PurchaseDialog and AdminPage catch blocks) with no evidence of surfacing the backend error message to the user. The relevant mutation implementations in `useQueries.ts` are truncated, so it is not evidenced that toasts/dialogs show the backend error message as required.",
+      "evidence": [
+        "frontend/src/components/PurchaseDialog.tsx (catch logs only, no user-facing error display in shown snippet)",
+        "frontend/src/pages/AdminPage.tsx (catch logs only, no user-facing error display in shown snippet)",
+        "frontend/src/hooks/useQueries.ts (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-16",
+      "requirement": "Replace transparent UI backgrounds with solid backgrounds across all dialogs/menus/overlays; specifically ensure Admin Create Product dialog and Shop purchase dialog are opaque in light/dark mode without editing `frontend/src/components/ui` sources.",
+      "reason": "PurchaseDialog explicitly sets `DialogContent` to `bg-background`, and global CSS forces popover/menu/select backgrounds. But the diff does not show evidence that the Admin \"Create Product\" dialog content (DialogContent) was updated to be opaque, nor does it prove that *all* other dialogs/overlays in the app have been audited and fixed (only certain Radix popper roles/select/menu/popover are covered).",
+      "evidence": [
+        "frontend/src/components/PurchaseDialog.tsx (DialogContent className=\"bg-background ...\")",
+        "frontend/src/index.css (Radix popover/menu/select background override)",
+        "frontend/src/pages/AdminPage.tsx (truncated; no visible DialogContent className changes shown)"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Backend change to return a `PurchaseWithId` type for stable purchase identifier tracking across deletions.",
+      "reason": "This is not requested by REQ-14/15/16 (which focus on removing auth gating for addProduct/buyProduct and making UI surfaces opaque). The diff summary text indicates this backend behavior change, suggesting scope expansion beyond the requested authorization/background updates.",
+      "evidence": [
+        "frontend-file-summaries.txt (describes backend/main.mo now returns PurchaseWithId)"
+      ]
+    }
+  ],
+  "confidence": 0.62,
+  "changed_files": [
+    "backend/main.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/PurchaseDialog.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/index.css",
+    "frontend/src/pages/AdminPage.tsx",
+    "project_state.json"
+  ]
+}

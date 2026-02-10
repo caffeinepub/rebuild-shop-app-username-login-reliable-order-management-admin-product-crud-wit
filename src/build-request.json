@@ -1,0 +1,92 @@
+{
+  "kind": "build_request",
+  "title": "Remove backend authorization gating for buying/creating products and make all UI dialogs/menus use solid (non-transparent) backgrounds",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-14",
+      "text": "Remove backend authorization/auth checks that block core actions: creating products and sending purchase requests. Specifically, update the Motoko canister so that `addProduct(...)` and `buyProduct(productName)` no longer require admin/user permissions and do not trap due to missing roles/sessions; these calls must succeed for any caller as long as the product exists and is not sold out.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-4",
+          "msg-6"
+        ],
+        "quotes": [
+          "All auth checks. Thats means creating products and buying products (well, sending the request to buy)."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Calling `addProduct(name, price, category, imageData)` succeeds without trapping with an \"Unauthorized\" / \"not admin\" error for any caller.",
+        "Calling `buyProduct(productName)` succeeds without trapping with an \"Unauthorized\" / \"Please log in\" error for any caller when the product exists and is not sold out.",
+        "`buyProduct` still traps for non-auth reasons (e.g., product not found, already sold out) as it does today.",
+        "No other backend endpoints are broadened beyond what is necessary to satisfy removing auth checks for these two actions."
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "text": "Update the frontend to handle the new backend behavior for product creation and purchasing: ensure UI does not depend on admin/user authorization to perform `Create Product` and `Send Purchase Request`, and that any error messages shown to the user are in English and reflect the actual backend error message.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4",
+          "msg-6"
+        ],
+        "quotes": [
+          "Just remove the goddang checks, alright?",
+          "All auth checks. Thats means creating products and buying products (well, sending the request to buy)."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A non-admin user can submit the Admin page product creation form and the product is created successfully (assuming the user can access the page in the current routing).",
+        "A user can send a purchase request from the purchase dialog without being blocked by frontend-side authorization checks.",
+        "If the backend returns an error for purchase/product creation (e.g., sold out, product not found), the toast/dialog surfaces the backend error message in English without substituting obsolete authorization-specific messaging."
+      ]
+    },
+    {
+      "id": "REQ-16",
+      "text": "Replace transparent UI backgrounds with solid, non-transparent backgrounds across the app. Audit all dialogs/menus/overlays used in the Shop and Admin flows (including the product creation dialog and the product view/purchase dialog) and ensure their content surfaces render with an opaque background color so underlying UI does not bleed through.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4",
+          "msg-6"
+        ],
+        "quotes": [
+          "for the extra menus (the product creation menu and product view menu) please make the background not transparent.",
+          "all transparent backgrounds should be filled. The ones i said are the ones i just know"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The Admin \"Create Product\" dialog content renders with a solid (opaque) background in both light and dark mode.",
+        "The Shop product view/purchase dialog content renders with a solid (opaque) background in both light and dark mode.",
+        "No dialog/menu/overlay content in the app appears visually transparent (i.e., underlying page elements are not visible through the content surface).",
+        "Changes do not require editing any files under `frontend/src/components/ui` (compose via props/classNames or add safe global CSS overrides elsewhere)."
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend must remain a single Motoko actor with all logic in `backend/main.mo`.",
+    "Do not edit read-only Shadcn UI component sources under `frontend/src/components/ui` (compose/override from usage sites or via global styles).",
+    "Use English for any user-facing text."
+  ],
+  "nonGoals": [
+    "Do not remove admin-only authorization checks for viewing/accepting/declining/deleting purchases unless explicitly required by the user.",
+    "Do not add new authentication providers or third-party auth; keep Internet Identity as-is.",
+    "Do not redesign the overall app flow (routing between Shop/Admin/Login) beyond what is necessary to stop buy/create actions from being blocked."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}

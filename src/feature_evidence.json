@@ -1,0 +1,50 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-update-the-frontend-to-handle-the-new-backend-behavior-for-product-creation-and-purchasing-ensure-ui-does-not-depend-on-admin-user-authorization-to-perform-create-product-and-send-purchase-request-and-that-any-error-messages-shown-to-the-user-are-in-english-and-reflect-the-actual-backend-error-message",
+      "featureTitle": "Update the frontend to handle the new backend behavior for product creation and purchasing: ensure UI does not depend on admin/user authorization to perform `Create Product` and `Send Purchase Request`, and that any error messages shown to the user are in English and reflect the actual backend error message.",
+      "files": [
+        "frontend/src/components/PurchaseDialog.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/AdminPage.tsx"
+      ],
+      "components": [
+        "authorization@3.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-15"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-replace-transparent-ui-backgrounds-with-solid-non-transparent-backgrounds-across-the-app-audit-all-dialogs-menus-overlays-used-in-the-shop-and-admin-flows-including-the-product-creation-dialog-and-the-product-view-purchase-dialog-and-ensure-their-content-surfaces-render-with-an-opaque-background-color-so-underlying-ui-does-not-bleed-through",
+      "featureTitle": "Replace transparent UI backgrounds with solid, non-transparent backgrounds across the app. Audit all dialogs/menus/overlays used in the Shop and Admin flows (including the product creation dialog and the product view/purchase dialog) and ensure their content surfaces render with an opaque background color so underlying UI does not bleed through.",
+      "files": [
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/PurchaseDialog.tsx",
+        "frontend/src/index.css",
+        "frontend/src/pages/AdminPage.tsx"
+      ],
+      "components": [
+        "authorization@3.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-16"
+      ],
+      "confidence": "high"
+    }
+  ]
+}
