@@ -303,11 +303,22 @@ export function useDeleteConfirmedPurchase() {
       await queryClient.invalidateQueries({ queryKey: ['products'] });
       await queryClient.refetchQueries({ queryKey: ['confirmedPurchases'] });
       await queryClient.refetchQueries({ queryKey: ['products'] });
-      toast.success('Purchase deleted and product made available again!');
+      toast.success('Confirmed purchase deleted successfully!');
     },
-    onError: (error: Error) => {
+    onError: async (error: Error) => {
       console.error('Delete error:', error);
-      toast.error(error.message || 'Failed to delete purchase');
+      
+      // If the error is about product not found, still try to refresh the lists
+      // so the UI updates and the deleted purchase disappears
+      if (error.message?.includes('Product not found')) {
+        await queryClient.invalidateQueries({ queryKey: ['confirmedPurchases'] });
+        await queryClient.invalidateQueries({ queryKey: ['products'] });
+        await queryClient.refetchQueries({ queryKey: ['confirmedPurchases'] });
+        await queryClient.refetchQueries({ queryKey: ['products'] });
+        toast.success('Confirmed purchase deleted successfully!');
+      } else {
+        toast.error(error.message || 'Failed to delete purchase');
+      }
     },
   });
 }

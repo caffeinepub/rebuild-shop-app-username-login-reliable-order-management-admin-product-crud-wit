@@ -1,6 +1,6 @@
 {
   "frontend/src/App.tsx": "Main application component managing authentication flow and routing between login, shop, and admin pages with orange/amber gradient background theme.",
-  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations with mutations that display backend error messages directly without frontend-side authorization blocking for buy/create actions.",
+  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations with mutations; deleteConfirmedPurchase now uses neutral success messaging and gracefully handles missing product errors by refreshing UI lists using queryClient reference from hook top level.",
   "frontend/src/pages/LoginPage.tsx": "English-language login page with orange/amber gradient theme that validates usernames, calls backend login to receive role, and passes admin status to local auth store based on backend response.",
   "frontend/src/pages/ShopPage.tsx": "Shop page displaying products in Normal and Free tabs with English UI, orange/amber theme, and automatic product refetch when purchase dialog closes.",
   "frontend/src/pages/AdminPage.tsx": "Admin dashboard with product management and purchase request handling, featuring opaque dialog backgrounds for product creation form.",

@@ -1,11 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Allow any caller to create products and send purchase requests without backend/frontend authorization gating, and ensure all dialogs/menus/overlays render with solid (non-transparent) backgrounds.
+**Goal:** Remove all backend authorization/permission checks so every backend canister method is callable without authentication.
 
 **Planned changes:**
-- Backend (Motoko): remove authorization/session/role checks that block `addProduct(...)` and `buyProduct(productName)`, while keeping existing non-auth validation/traps (e.g., product not found, sold out) and leaving other endpoints unchanged.
-- Frontend: remove any admin/user authorization checks that prevent submitting the Create Product flow or sending a purchase request; surface backend errors in English as returned (no obsolete “Unauthorized/Please log in” substitutions).
-- Frontend UI: audit dialogs/menus/overlays in Shop/Admin flows and make their content surfaces opaque (solid backgrounds) in both light and dark mode without editing `frontend/src/components/ui` source files.
+- Delete AccessControl-based guards and remove any "Unauthorized" traps across backend methods that currently enforce caller identity/roles (including purchase admin actions, product admin actions, and user profile methods).
+- Keep existing Candid method names and parameter/return types compatible with the current frontend, ensuring the canister still builds and the frontend can call the same methods without type mismatches.
 
-**User-visible outcome:** Users can create products and send purchase requests regardless of login/admin status (subject to product existence/stock), and all dialogs/menus display with solid backgrounds so the page behind does not show through.
+**User-visible outcome:** Any user (regardless of identity) can call backend methods like acceptPurchase/declinePurchase/deleteConfirmedPurchase/addProduct/deleteProduct/getCallerUserProfile/getUserProfile/saveCallerUserProfile without receiving "Unauthorized" errors.

@@ -1,184 +1,38 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 7,
-  "summary": "Shop-App mit einfachem Benutzernamen-Flow und Produkt-/Bestell-Workflow; Backend-Auth-Checks für Produkt-Erstellung und Kaufanfragen werden entfernt, und UI-Overlays/Menus/Dialogs sollen keine transparenten Hintergründe mehr verwenden (stattdessen solid backgrounds).",
+  "projectStateVersion": 3,
+  "summary": "Project focused on removing backend authentication requirements so all backend methods are public and require no caller identity.",
   "architectural_notes": [
-    "Rollenlogik basiert ausschließlich auf eingegebenem Benutzernamen: nur 'Steven' ist Admin, alle anderen sind Shopper.",
-    "Produkte sind Einzelstücke: nach bestätigter Bestellung Status 'verkauft' und nicht mehr kaufbar; Sichtbarkeit bleibt bis Admin-Löschung.",
-    "Produktbilder werden beim Erstellen/Upload als JPEG/PNG ausgewählt und im Shop angezeigt.",
-    "Backend authorization checks will be removed for product creation and purchase request actions (no admin-only gating for these endpoints).",
-    "All UI dialogs/menus/overlays should use non-transparent (solid) backgrounds instead of transparent backdrops."
+    "Backend should have no authentication/authorization checks; all methods are publicly callable (remove shared(msg)/caller-identity enforcement)."
   ],
-  "known_issues": [
-    "Backend rejects login with error \"This principal has already registered a different username\" (principal is locked to one username; should allow overwriting/changing username on each login).",
-    "Product creation fails with \"not admin\" even when user is in Admin area logged in as Steven (admin-permission check/session mismatch)."
-  ],
+  "known_issues": [],
   "isFixRequest": true,
-  "existing_features": [
-    {
-      "id": "feature-fix-purchase-workflow-correctness-by-returning-stable-purchase-identifiers-from-the-backend-and-using-those-identifiers-for-accept-decline-delete-actions-do-not-rely-on-array-indices-or-sorted-order",
-      "title": "Fix purchase workflow correctness by returning stable purchase identifiers from the backend and using those identifiers for accept/decline/delete actions (do not rely on array indices or sorted order).",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-image-upload-for-products-in-a-way-that-works-without-external-storage-allow-the-admin-to-upload-a-jpeg-png-in-the-frontend-store-the-image-data-in-the-product-record-e-g-as-a-data-url-or-equivalent-text-representation-and-render-product-images-correctly-in-the-shop-and-dialogs",
-      "title": "Implement image upload for products in a way that works without external storage: allow the admin to upload a JPEG/PNG in the frontend, store the image data in the product record (e.g., as a data URL or equivalent text representation), and render product images correctly in the shop and dialogs.",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-extend-the-frontend-admin-page-to-include-product-management-list-all-products-with-status-available-sold-out-and-provide-a-form-to-create-new-products-name-price-category-image-upload-and-controls-to-delete-products",
-      "title": "Extend the frontend Admin page to include product management: list all products with status (Available/Sold out), and provide a form to create new products (name, price, category, image upload) and controls to delete products.",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-ensure-the-shop-buying-ux-matches-the-requested-flow-a-shopper-selects-a-product-and-confirms-purchase-no-extra-fields-no-quantity-no-address-if-a-product-is-sold-out-it-stays-visible-but-cannot-be-purchased-sold-out-state-occurs-only-after-admin-accepts-a-pending-purchase",
-      "title": "Ensure the shop buying UX matches the requested flow: a shopper selects a product and confirms purchase; no extra fields (no quantity, no address); if a product is sold out it stays visible but cannot be purchased; sold-out state occurs only after admin accepts a pending purchase.",
-      "reqIds": [
-        "REQ-7"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-convert-all-user-facing-ui-text-to-english-across-login-shop-admin-header-dialogs-toasts-and-empty-loading-states",
-      "title": "Convert all user-facing UI text to English across Login, Shop, Admin, Header, dialogs, toasts, and empty/loading states.",
-      "reqIds": [
-        "REQ-8"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-apply-a-coherent-visual-theme-across-the-app-colors-gradients-typography-surfaces-that-avoids-the-current-blue-purple-gradient-look-update-key-ui-surfaces-backgrounds-header-buttons-highlights-consistently-while-keeping-the-layout-sensible-for-a-small-shop-admin-app",
-      "title": "Apply a coherent visual theme across the app (colors, gradients, typography, surfaces) that avoids the current blue/purple gradient look; update key UI surfaces (backgrounds, header, buttons, highlights) consistently while keeping the layout sensible for a small shop/admin app.",
-      "reqIds": [
-        "REQ-9"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-frontend-login-error-handling-so-it-no-longer-expects-or-surfaces-the-obsolete-this-principal-has-already-registered-a-different-username-failure-and-instead-displays-whatever-english-backend-error-is-returned-for-login-authorization-failures",
-      "title": "Update the frontend login error handling so it no longer expects or surfaces the obsolete \"This principal has already registered a different username\" failure, and instead displays whatever English backend error is returned for login/authorization failures.",
-      "reqIds": [
-        "REQ-13"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-frontend-to-handle-the-new-backend-behavior-for-product-creation-and-purchasing-ensure-ui-does-not-depend-on-admin-user-authorization-to-perform-create-product-and-send-purchase-request-and-that-any-error-messages-shown-to-the-user-are-in-english-and-reflect-the-actual-backend-error-message",
-      "title": "Update the frontend to handle the new backend behavior for product creation and purchasing: ensure UI does not depend on admin/user authorization to perform `Create Product` and `Send Purchase Request`, and that any error messages shown to the user are in English and reflect the actual backend error message.",
-      "reqIds": [
-        "REQ-15"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-replace-transparent-ui-backgrounds-with-solid-non-transparent-backgrounds-across-the-app-audit-all-dialogs-menus-overlays-used-in-the-shop-and-admin-flows-including-the-product-creation-dialog-and-the-product-view-purchase-dialog-and-ensure-their-content-surfaces-render-with-an-opaque-background-color-so-underlying-ui-does-not-bleed-through",
-      "title": "Replace transparent UI backgrounds with solid, non-transparent backgrounds across the app. Audit all dialogs/menus/overlays used in the Shop and Admin flows (including the product creation dialog and the product view/purchase dialog) and ensure their content surfaces render with an opaque background color so underlying UI does not bleed through.",
-      "reqIds": [
-        "REQ-16"
-      ],
-      "version": 1
-    }
-  ],
+  "existing_features": [],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Einfaches Login per Benutzername: 'Steven' führt in den Admin-Bereich, alle anderen Benutzernamen in den Shop; Username wird für Bestellungen mitgesendet",
+      "summary": "Remove all backend authentication checks so every backend method is public (no caller identity required)",
       "reqIds": [],
-      "status": "pending"
+      "status": "in_progress"
     },
     {
       "id": "AR-2",
-      "summary": "Produktkatalog im Shop anzeigen; jedes Produkt ist einmalig (Single-Item)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Admin: Produkte erstellen/hochladen mit Foto (JPEG/PNG), Name, Preis; Produkte löschen",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Bestellungen: Käufer wählt ein Produkt und gibt nur den Benutzernamen ein; Bestellung wird als Anfrage gespeichert",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Admin: Bestellanfragen ansehen sowie bestätigen, ablehnen und löschen",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Nach erfolgreicher Bestellung wird das Produkt als 'verkauft' markiert und ist nicht mehr kaufbar, bleibt aber sichtbar bis es manuell gelöscht wird",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Update the backend username login behavior to support a simple username-based session without username ownership conflicts: validate the username against the allowed list, associate the username to the caller principal for this session/profile, and do not reject login just because the same username is used by a different principal.",
+      "summary": "Remove all backend authorization/permission enforcement so that no canister method traps or rejects based on caller identity or role. Specifically, delete the AccessControl-based guards and any \"Unauthorized\" traps from all methods that currently check admin/user permissions (e.g., purchase admin actions, product admin actions, and user profile methods).",
       "reqIds": [
         "REQ-1"
       ],
       "status": "pending"
     },
     {
-      "id": "AR-10",
-      "summary": "Add backend admin product management APIs to create and delete products with fields: name, price, category, and image; newly created products must start as available; deleting a product removes it from the shop listing.",
+      "id": "AR-3",
+      "summary": "Ensure the backend still compiles and the public Candid interface remains usable by the existing frontend after removing authorization checks (i.e., keep method names and parameter/return types compatible unless strictly necessary). If any AccessControl-only endpoints become unnecessary, either keep them as non-enforcing/no-op helpers or adjust them in a way that does not break the current frontend build.",
       "reqIds": [
-        "REQ-4"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-11",
-      "summary": "Update the backend login behavior so the same principal can log in with any allowed username on each login without being blocked by a previously registered username. The backend must overwrite/update the existing session for the caller principal instead of trapping with the error \"This principal has already registered a different username\".",
-      "reqIds": [
-        "REQ-10"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-13",
-      "summary": "Ensure user-facing error messages relevant to login and authorization are in English (at minimum: invalid username, not authorized / admin-only actions, and missing login/session cases), so the frontend can display consistent English errors.",
-      "reqIds": [
-        "REQ-12"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-14",
-      "summary": "Remove all backend authorization/auth checks for core actions: allow creating products and sending purchase requests without admin/login authorization gating.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-15",
-      "summary": "Replace all transparent UI backgrounds (menus/modals/dialogs/overlays including product creation & product view) with solid, non-transparent backgrounds to avoid visual interference.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-16",
-      "summary": "Remove backend authorization/auth checks that block core actions: creating products and sending purchase requests. Specifically, update the Motoko canister so that `addProduct(...)` and `buyProduct(productName)` no longer require admin/user permissions and do not trap due to missing roles/sessions; these calls must succeed for any caller as long as the product exists and is not sold out.",
-      "reqIds": [
-        "REQ-14"
+        "REQ-2"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Rebuild shop app: username login, reliable order management, admin product CRUD with images",
+  "projectName": "Remove all backend authorization checks so every method is callable without authentication",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
