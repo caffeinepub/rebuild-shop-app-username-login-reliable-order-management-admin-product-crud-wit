@@ -1,10 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Remove all backend authorization/permission checks so every backend canister method is callable without authentication.
+**Goal:** Update the Login screen to clearly announce the shop is discontinued (in German) and prevent any user from signing in or accessing authenticated areas.
 
 **Planned changes:**
-- Delete AccessControl-based guards and remove any "Unauthorized" traps across backend methods that currently enforce caller identity/roles (including purchase admin actions, product admin actions, and user profile methods).
-- Keep existing Candid method names and parameter/return types compatible with the current frontend, ensuring the canister still builds and the frontend can call the same methods without type mismatches.
+- Add a full-width, pinned yellow marquee-style banner at the top of the Login screen with a German discontinuation message.
+- Disable all login interactions on the Login screen (inputs and submit), including preventing Enter key submission and any login action from firing.
+- Ensure any previously persisted “authenticated” client state is ignored/cleared so the app always shows the discontinued Login experience and never routes to Shop/Admin.
+- Apply a cohesive discontinued/caution styling on the Login screen consistent with the existing warm amber/yellow/orange palette (no blue/purple dominant accents).
 
-**User-visible outcome:** Any user (regardless of identity) can call backend methods like acceptPurchase/declinePurchase/deleteConfirmedPurchase/addProduct/deleteProduct/getCallerUserProfile/getUserProfile/saveCallerUserProfile without receiving "Unauthorized" errors.
+**User-visible outcome:** Users see a prominent scrolling German discontinuation notice on the Login screen and cannot sign in or access Shop/Admin, even if they were previously logged in.

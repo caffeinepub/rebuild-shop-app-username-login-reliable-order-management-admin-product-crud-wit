@@ -34,27 +34,27 @@ export default function ShopPage() {
     <div className="max-w-7xl mx-auto">
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-          Welcome, {username}!
+          Willkommen, {username}!
         </h1>
-        <p className="text-muted-foreground">Browse our exclusive collection</p>
+        <p className="text-muted-foreground">Durchstöbern Sie unsere exklusive Kollektion</p>
       </div>
 
       <Tabs defaultValue="normal" className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-2 mb-8">
-          <TabsTrigger value="normal">Products</TabsTrigger>
-          <TabsTrigger value="kostenlos">Free Items</TabsTrigger>
+          <TabsTrigger value="normal">Produkte</TabsTrigger>
+          <TabsTrigger value="kostenlos">Kostenlose Artikel</TabsTrigger>
         </TabsList>
 
         <TabsContent value="normal" className="space-y-6">
           {normalLoading ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-              <p className="mt-4 text-muted-foreground">Loading products...</p>
+              <p className="mt-4 text-muted-foreground">Produkte werden geladen...</p>
             </div>
           ) : !normalProducts || normalProducts.length === 0 ? (
             <div className="text-center py-12">
               <Package className="mx-auto h-16 w-16 text-muted-foreground/50 mb-4" />
-              <p className="text-muted-foreground">No products available at the moment</p>
+              <p className="text-muted-foreground">Derzeit sind keine Produkte verfügbar</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -73,12 +73,12 @@ export default function ShopPage() {
           {kostenlosLoading ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-              <p className="mt-4 text-muted-foreground">Loading free items...</p>
+              <p className="mt-4 text-muted-foreground">Kostenlose Artikel werden geladen...</p>
             </div>
           ) : !kostenlosProducts || kostenlosProducts.length === 0 ? (
             <div className="text-center py-12">
               <Package className="mx-auto h-16 w-16 text-muted-foreground/50 mb-4" />
-              <p className="text-muted-foreground">No free items available at the moment</p>
+              <p className="text-muted-foreground">Derzeit sind keine kostenlosen Artikel verfügbar</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

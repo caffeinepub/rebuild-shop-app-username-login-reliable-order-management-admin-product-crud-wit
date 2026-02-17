@@ -1,16 +1,9 @@
 import { Product, ProductStatus } from '../backend';
-import { useBuyProduct } from '../hooks/useQueries';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from './ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
-import { Info, Loader2, Package } from 'lucide-react';
+import { Info, Loader2, Image as ImageIcon } from 'lucide-react';
+import { useBuyProduct } from '../hooks/useQueries';
 import { getProductImageSrc } from '../lib/productImage';
 
 interface PurchaseDialogProps {
@@ -29,7 +22,7 @@ export default function PurchaseDialog({ product, open, onOpenChange }: Purchase
       await buyProduct.mutateAsync(product.name);
       onOpenChange(false);
     } catch (error) {
-      console.error('Purchase failed:', error);
+      console.error('Kauffehler:', error);
     }
   };
 
@@ -38,59 +31,56 @@ export default function PurchaseDialog({ product, open, onOpenChange }: Purchase
       <DialogContent className="bg-background sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{product.name}</DialogTitle>
-          <DialogDescription>Review product details</DialogDescription>
+          <DialogDescription>
+            Produktdetails und Kaufinformationen
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="aspect-square bg-gradient-to-br from-orange-100 to-amber-100 dark:from-gray-800 dark:to-gray-700 rounded-lg overflow-hidden">
+          <div className="aspect-square bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-950 dark:to-amber-950 rounded-lg overflow-hidden flex items-center justify-center">
             {imageSrc ? (
               <img
                 src={imageSrc}
                 alt={product.name}
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  const parent = e.currentTarget.parentElement;
-                  if (parent) {
-                    const fallback = document.createElement('div');
-                    fallback.className = 'w-full h-full flex items-center justify-center';
-                    fallback.innerHTML = '<svg class="w-16 h-16 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>';
-                    parent.appendChild(fallback);
-                  }
-                }}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Package className="w-16 h-16 text-muted-foreground" />
-              </div>
+              <ImageIcon className="w-24 h-24 text-muted-foreground/30" />
             )}
           </div>
 
-          <div>
-            <p className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-              ${product.price.toFixed(2)}
-            </p>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Preis</span>
+              <span className="text-2xl font-bold text-primary">
+                €{product.price.toFixed(2)}
+              </span>
+            </div>
           </div>
 
-          <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-            <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            <AlertDescription className="text-sm text-blue-900 dark:text-blue-100">
-              Your purchase request will be sent to the admin for approval. The product will become unavailable only after the admin accepts your request.
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Ihre Kaufanfrage wird zur Genehmigung an den Administrator gesendet.
             </AlertDescription>
           </Alert>
 
           {isSoldOut && (
             <Alert variant="destructive">
               <AlertDescription>
-                This product is currently sold out and cannot be purchased.
+                Dieses Produkt ist derzeit ausverkauft und kann nicht gekauft werden.
               </AlertDescription>
             </Alert>
           )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={buyProduct.isPending}
+          >
+            Abbrechen
           </Button>
           <Button
             onClick={handlePurchase}
@@ -100,10 +90,10 @@ export default function PurchaseDialog({ product, open, onOpenChange }: Purchase
             {buyProduct.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sending...
+                Wird gesendet...
               </>
             ) : (
-              'Send Purchase Request'
+              'Kaufanfrage senden'
             )}
           </Button>
         </DialogFooter>

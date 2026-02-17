@@ -88,8 +88,16 @@ export const idlService = IDL.Service({
   'getAllProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
-  'getConfirmedPurchases' : IDL.Func([], [IDL.Vec(Purchase)], ['query']),
-  'getPendingPurchases' : IDL.Func([], [IDL.Vec(Purchase)], ['query']),
+  'getConfirmedPurchases' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(IDL.Nat, Purchase))],
+      ['query'],
+    ),
+  'getPendingPurchases' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(IDL.Nat, Purchase))],
+      ['query'],
+    ),
   'getProduct' : IDL.Func([IDL.Text], [Product], ['query']),
   'getProductsByCategory' : IDL.Func([Category], [IDL.Vec(Product)], ['query']),
   'getUserProfile' : IDL.Func(
@@ -184,8 +192,16 @@ export const idlFactory = ({ IDL }) => {
     'getAllProducts' : IDL.Func([], [IDL.Vec(Product)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
-    'getConfirmedPurchases' : IDL.Func([], [IDL.Vec(Purchase)], ['query']),
-    'getPendingPurchases' : IDL.Func([], [IDL.Vec(Purchase)], ['query']),
+    'getConfirmedPurchases' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(IDL.Nat, Purchase))],
+        ['query'],
+      ),
+    'getPendingPurchases' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(IDL.Nat, Purchase))],
+        ['query'],
+      ),
     'getProduct' : IDL.Func([IDL.Text], [Product], ['query']),
     'getProductsByCategory' : IDL.Func(
         [Category],

@@ -9,6 +9,7 @@ import {
   useCreateProduct,
   useDeleteProduct
 } from '../hooks/useQueries';
+import { usePurchaseRequestVisibility } from '../hooks/usePurchaseRequestVisibility';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -30,6 +31,7 @@ export default function AdminPage() {
   const deleteConfirmedPurchase = useDeleteConfirmedPurchase();
   const createProduct = useCreateProduct();
   const deleteProduct = useDeleteProduct();
+  const { hiddenPurchaseIds, hidePurchase } = usePurchaseRequestVisibility();
 
   // Product creation form state
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -45,7 +47,7 @@ export default function AdminPage() {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file (JPEG or PNG)');
+      alert('Bitte wählen Sie eine Bilddatei (JPEG oder PNG)');
       return;
     }
 
@@ -62,13 +64,13 @@ export default function AdminPage() {
 
   const handleCreateProduct = async () => {
     if (!newProductName.trim()) {
-      alert('Please enter a product name');
+      alert('Bitte geben Sie einen Produktnamen ein');
       return;
     }
 
     const price = parseFloat(newProductPrice);
     if (isNaN(price) || price < 0) {
-      alert('Please enter a valid price');
+      alert('Bitte geben Sie einen gültigen Preis ein');
       return;
     }
 
@@ -88,17 +90,29 @@ export default function AdminPage() {
       setImageFileName('');
       setCreateDialogOpen(false);
     } catch (error) {
-      console.error('Failed to create product:', error);
+      console.error('Fehler beim Erstellen des Produkts:', error);
     }
   };
+
+  const handleDecline = async (purchaseId: bigint) => {
+    // Hide immediately in UI
+    hidePurchase(purchaseId);
+    // Then call backend
+    await declinePurchase.mutateAsync(purchaseId);
+  };
+
+  // Filter out hidden purchases
+  const visiblePendingPurchases = pendingPurchases?.filter(
+    (item) => !hiddenPurchaseIds.has(item.id.toString())
+  ) || [];
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       <div>
         <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-          Admin Dashboard
+          Admin-Dashboard
         </h1>
-        <p className="text-muted-foreground">Manage purchase requests and products</p>
+        <p className="text-muted-foreground">Kaufanfragen und Produkte verwalten</p>
       </div>
 
       {/* Products Management Section */}
@@ -108,34 +122,34 @@ export default function AdminPage() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Package className="h-5 w-5" />
-                Products
+                Produkte
               </CardTitle>
-              <CardDescription>Manage your product catalog</CardDescription>
+              <CardDescription>Verwalten Sie Ihren Produktkatalog</CardDescription>
             </div>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700">
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Product
+                  Produkt erstellen
                 </Button>
               </DialogTrigger>
               <DialogContent className="bg-background sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle>Create New Product</DialogTitle>
-                  <DialogDescription>Add a new product to your catalog</DialogDescription>
+                  <DialogTitle>Neues Produkt erstellen</DialogTitle>
+                  <DialogDescription>Fügen Sie ein neues Produkt zu Ihrem Katalog hinzu</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="product-name">Product Name</Label>
+                    <Label htmlFor="product-name">Produktname</Label>
                     <Input
                       id="product-name"
-                      placeholder="Enter product name"
+                      placeholder="Produktname eingeben"
                       value={newProductName}
                       onChange={(e) => setNewProductName(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="product-price">Price</Label>
+                    <Label htmlFor="product-price">Preis</Label>
                     <Input
                       id="product-price"
                       type="number"
@@ -147,7 +161,7 @@ export default function AdminPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="product-category">Category</Label>
+                    <Label htmlFor="product-category">Kategorie</Label>
                     <Select
                       value={newProductCategory}
                       onValueChange={(value) => setNewProductCategory(value as Category)}
@@ -157,12 +171,12 @@ export default function AdminPage() {
                       </SelectTrigger>
                       <SelectContent className="bg-popover">
                         <SelectItem value={Category.normal}>Normal</SelectItem>
-                        <SelectItem value={Category.kostenlos}>Free</SelectItem>
+                        <SelectItem value={Category.kostenlos}>Kostenlos</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="product-image">Product Image (optional)</Label>
+                    <Label htmlFor="product-image">Produktbild (optional)</Label>
                     <div className="flex items-center gap-2">
                       <Input
                         id="product-image"
@@ -181,7 +195,7 @@ export default function AdminPage() {
                       <div className="mt-2 relative w-32 h-32 rounded-lg overflow-hidden border border-border">
                         <img
                           src={newProductImage}
-                          alt="Preview"
+                          alt="Vorschau"
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -190,7 +204,7 @@ export default function AdminPage() {
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                    Cancel
+                    Abbrechen
                   </Button>
                   <Button
                     onClick={handleCreateProduct}
@@ -200,10 +214,10 @@ export default function AdminPage() {
                     {createProduct.isPending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating...
+                        Wird erstellt...
                       </>
                     ) : (
-                      'Create Product'
+                      'Produkt erstellen'
                     )}
                   </Button>
                 </DialogFooter>
@@ -225,61 +239,48 @@ export default function AdminPage() {
                     key={product.name}
                     className="border border-border rounded-lg p-4 space-y-3"
                   >
-                    <div className="aspect-square bg-gradient-to-br from-orange-100 to-amber-100 dark:from-gray-800 dark:to-gray-700 rounded-lg overflow-hidden">
+                    <div className="aspect-square bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-950 dark:to-amber-950 rounded-lg overflow-hidden flex items-center justify-center">
                       {imageSrc ? (
                         <img
                           src={imageSrc}
                           alt={product.name}
                           className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                            const parent = e.currentTarget.parentElement;
-                            if (parent) {
-                              const fallback = document.createElement('div');
-                              fallback.className = 'w-full h-full flex items-center justify-center';
-                              fallback.innerHTML = '<svg class="w-12 h-12 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>';
-                              parent.appendChild(fallback);
-                            }
-                          }}
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package className="w-12 h-12 text-muted-foreground" />
-                        </div>
+                        <ImageIcon className="w-16 h-16 text-muted-foreground/30" />
                       )}
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-start justify-between gap-2">
                         <h3 className="font-semibold text-lg">{product.name}</h3>
-                        <Badge
-                          variant={product.status === ProductStatus.soldOut ? 'destructive' : 'default'}
-                          className={product.status === ProductStatus.available ? 'bg-gradient-to-r from-orange-500 to-amber-600' : ''}
-                        >
-                          {product.status === ProductStatus.soldOut ? 'Sold Out' : 'Available'}
+                        <Badge variant={product.status === ProductStatus.available ? 'default' : 'secondary'}>
+                          {product.status === ProductStatus.available ? 'Verfügbar' : 'Ausverkauft'}
                         </Badge>
                       </div>
-                      <p className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-                        ${product.price.toFixed(2)}
-                      </p>
-                      <Badge variant="outline">
-                        {product.category === Category.kostenlos ? 'Free' : 'Normal'}
-                      </Badge>
+                      <div className="flex items-center justify-between">
+                        <span className="text-2xl font-bold text-primary">
+                          €{product.price.toFixed(2)}
+                        </span>
+                        <Badge variant="outline">
+                          {product.category === Category.normal ? 'Normal' : 'Kostenlos'}
+                        </Badge>
+                      </div>
                       <Button
                         variant="destructive"
                         size="sm"
+                        className="w-full"
                         onClick={() => deleteProduct.mutate(product.name)}
                         disabled={deleteProduct.isPending}
-                        className="w-full"
                       >
                         {deleteProduct.isPending ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Deleting...
+                            Wird gelöscht...
                           </>
                         ) : (
                           <>
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
+                            Löschen
                           </>
                         )}
                       </Button>
@@ -289,27 +290,28 @@ export default function AdminPage() {
               })}
             </div>
           ) : (
-            <p className="text-center text-muted-foreground py-8">No products available</p>
+            <div className="text-center py-8 text-muted-foreground">
+              <Package className="mx-auto h-12 w-12 mb-2 opacity-50" />
+              <p>Keine Produkte vorhanden</p>
+            </div>
           )}
         </CardContent>
       </Card>
 
-      <Separator />
-
-      {/* Pending Purchases Section */}
+      {/* Pending Purchase Requests */}
       <Card>
         <CardHeader>
-          <CardTitle>Pending Purchase Requests</CardTitle>
-          <CardDescription>Review and approve purchase requests</CardDescription>
+          <CardTitle>Ausstehende Kaufanfragen</CardTitle>
+          <CardDescription>Anfragen prüfen und genehmigen oder ablehnen</CardDescription>
         </CardHeader>
         <CardContent>
           {pendingLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : pendingPurchases && pendingPurchases.length > 0 ? (
+          ) : visiblePendingPurchases.length > 0 ? (
             <div className="space-y-4">
-              {pendingPurchases.map((item) => (
+              {visiblePendingPurchases.map((item) => (
                 <div
                   key={item.id.toString()}
                   className="flex items-center justify-between p-4 border border-border rounded-lg"
@@ -317,40 +319,41 @@ export default function AdminPage() {
                   <div className="space-y-1">
                     <p className="font-semibold">{item.purchase.productName}</p>
                     <p className="text-sm text-muted-foreground">
-                      Requested by: {item.purchase.username}
+                      Benutzer: {item.purchase.username}
                     </p>
-                    <p className="text-lg font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-                      ${item.purchase.price.toFixed(2)}
+                    <p className="text-sm font-medium text-primary">
+                      €{item.purchase.price.toFixed(2)}
                     </p>
                   </div>
                   <div className="flex gap-2">
                     <Button
                       size="sm"
+                      variant="default"
+                      className="bg-green-600 hover:bg-green-700"
                       onClick={() => acceptPurchase.mutate(item.id)}
-                      disabled={acceptPurchase.isPending}
-                      className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                      disabled={acceptPurchase.isPending || declinePurchase.isPending}
                     >
                       {acceptPurchase.isPending ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
                         <>
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Accept
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          Annehmen
                         </>
                       )}
                     </Button>
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => declinePurchase.mutate(item.id)}
-                      disabled={declinePurchase.isPending}
+                      onClick={() => handleDecline(item.id)}
+                      disabled={acceptPurchase.isPending || declinePurchase.isPending}
                     >
                       {declinePurchase.isPending ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
                         <>
-                          <XCircle className="h-4 w-4 mr-1" />
-                          Decline
+                          <XCircle className="mr-2 h-4 w-4" />
+                          Ablehnen
                         </>
                       )}
                     </Button>
@@ -359,16 +362,20 @@ export default function AdminPage() {
               ))}
             </div>
           ) : (
-            <p className="text-center text-muted-foreground py-8">No pending requests</p>
+            <p className="text-center py-8 text-muted-foreground">
+              Keine ausstehenden Anfragen
+            </p>
           )}
         </CardContent>
       </Card>
 
-      {/* Confirmed Purchases Section */}
+      <Separator />
+
+      {/* Confirmed Purchases */}
       <Card>
         <CardHeader>
-          <CardTitle>Confirmed Purchases</CardTitle>
-          <CardDescription>View and manage confirmed purchases</CardDescription>
+          <CardTitle>Bestätigte Käufe</CardTitle>
+          <CardDescription>Genehmigte Kaufanfragen verwalten</CardDescription>
         </CardHeader>
         <CardContent>
           {confirmedLoading ? (
@@ -380,19 +387,16 @@ export default function AdminPage() {
               {confirmedPurchases.map((item) => (
                 <div
                   key={item.id.toString()}
-                  className="flex items-center justify-between p-4 border border-border rounded-lg bg-green-50 dark:bg-green-950"
+                  className="flex items-center justify-between p-4 border border-border rounded-lg bg-green-50 dark:bg-green-950/20"
                 >
                   <div className="space-y-1">
                     <p className="font-semibold">{item.purchase.productName}</p>
                     <p className="text-sm text-muted-foreground">
-                      Purchased by: {item.purchase.username}
+                      Benutzer: {item.purchase.username}
                     </p>
-                    <p className="text-lg font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-                      ${item.purchase.price.toFixed(2)}
+                    <p className="text-sm font-medium text-primary">
+                      €{item.purchase.price.toFixed(2)}
                     </p>
-                    <Badge className="bg-gradient-to-r from-green-500 to-green-600">
-                      Confirmed
-                    </Badge>
                   </div>
                   <Button
                     size="sm"
@@ -404,8 +408,8 @@ export default function AdminPage() {
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <>
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Delete
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Löschen
                       </>
                     )}
                   </Button>
@@ -413,7 +417,9 @@ export default function AdminPage() {
               ))}
             </div>
           ) : (
-            <p className="text-center text-muted-foreground py-8">No confirmed purchases</p>
+            <p className="text-center py-8 text-muted-foreground">
+              Keine bestätigten Käufe
+            </p>
           )}
         </CardContent>
       </Card>

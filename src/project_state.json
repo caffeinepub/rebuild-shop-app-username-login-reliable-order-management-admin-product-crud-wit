@@ -1,38 +1,54 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Project focused on removing backend authentication requirements so all backend methods are public and require no caller identity.",
-  "architectural_notes": [
-    "Backend should have no authentication/authorization checks; all methods are publicly callable (remove shared(msg)/caller-identity enforcement)."
-  ],
+  "summary": "Project is being paused/discontinued; update the login experience to communicate closure and prevent access.",
+  "architectural_notes": [],
   "known_issues": [],
-  "isFixRequest": true,
-  "existing_features": [],
-  "new_feature_requests": [
+  "isFixRequest": false,
+  "existing_features": [
     {
-      "id": "AR-1",
-      "summary": "Remove all backend authentication checks so every backend method is public (no caller identity required)",
-      "reqIds": [],
-      "status": "in_progress"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Remove all backend authorization/permission enforcement so that no canister method traps or rejects based on caller identity or role. Specifically, delete the AccessControl-based guards and any \"Unauthorized\" traps from all methods that currently check admin/user permissions (e.g., purchase admin actions, product admin actions, and user profile methods).",
+      "id": "feature-add-a-horizontally-scrolling-yellow-banner-to-the-top-of-the-login-screen-that-displays-a-german-discontinuation-notice-stating-the-shop-is-discontinued-and-will-not-be-worked-on-anymore",
+      "title": "Add a horizontally scrolling yellow banner to the top of the Login screen that displays a German discontinuation notice stating the shop is discontinued and will not be worked on anymore.",
       "reqIds": [
         "REQ-1"
       ],
-      "status": "pending"
+      "version": 1
     },
     {
-      "id": "AR-3",
-      "summary": "Ensure the backend still compiles and the public Candid interface remains usable by the existing frontend after removing authorization checks (i.e., keep method names and parameter/return types compatible unless strictly necessary). If any AccessControl-only endpoints become unnecessary, either keep them as non-enforcing/no-op helpers or adjust them in a way that does not break the current frontend build.",
+      "id": "feature-disable-logging-in-from-the-login-screen-so-users-cannot-sign-in-no-successful-login-via-button-click-or-enter-key",
+      "title": "Disable logging in from the Login screen so users cannot sign in (no successful login via button click or Enter key).",
       "reqIds": [
         "REQ-2"
       ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-previously-persisted-client-auth-state-cannot-be-used-to-bypass-the-discontinued-state-if-a-user-is-already-authenticated-in-local-storage-they-should-be-forced-to-a-non-authenticated-discontinued-login-view",
+      "title": "Ensure previously persisted client auth state cannot be used to bypass the discontinued state (if a user is already authenticated in local storage, they should be forced to a non-authenticated/discontinued login view).",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-cohesive-discontinued-caution-visual-theme-for-the-login-discontinuation-experience-typography-spacing-and-banner-styling-consistent-with-the-existing-warm-orange-amber-palette-do-not-introduce-blue-purple-as-primary-accents",
+      "title": "Implement a cohesive 'discontinued/caution' visual theme for the login discontinuation experience (typography, spacing, and banner styling) consistent with the existing warm orange/amber palette; do not introduce blue/purple as primary accents.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Add a yellow horizontally scrolling banner on the login screen (German text) stating the shop is discontinued, and disable login so users cannot sign in.",
+      "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Remove all backend authorization checks so every method is callable without authentication",
+  "gameProjectType": "none",
+  "projectName": "Discontinued Shop Notice",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

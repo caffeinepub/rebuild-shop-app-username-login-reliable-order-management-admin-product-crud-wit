@@ -47,8 +47,8 @@ export interface backendInterface {
     getAllProducts(): Promise<Array<Product>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    getConfirmedPurchases(): Promise<Array<Purchase>>;
-    getPendingPurchases(): Promise<Array<Purchase>>;
+    getConfirmedPurchases(): Promise<Array<[bigint, Purchase]>>;
+    getPendingPurchases(): Promise<Array<[bigint, Purchase]>>;
     getProduct(name: string): Promise<Product>;
     getProductsByCategory(category: Category): Promise<Array<Product>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;

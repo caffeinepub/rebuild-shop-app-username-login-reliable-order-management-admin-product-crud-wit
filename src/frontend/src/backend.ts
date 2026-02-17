@@ -146,8 +146,8 @@ export interface backendInterface {
     getAllProducts(): Promise<Array<Product>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    getConfirmedPurchases(): Promise<Array<Purchase>>;
-    getPendingPurchases(): Promise<Array<Purchase>>;
+    getConfirmedPurchases(): Promise<Array<[bigint, Purchase]>>;
+    getPendingPurchases(): Promise<Array<[bigint, Purchase]>>;
     getProduct(name: string): Promise<Product>;
     getProductsByCategory(category: Category): Promise<Array<Product>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
@@ -384,7 +384,7 @@ export class Backend implements backendInterface {
             return from_candid_UserRole_n22(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getConfirmedPurchases(): Promise<Array<Purchase>> {
+    async getConfirmedPurchases(): Promise<Array<[bigint, Purchase]>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getConfirmedPurchases();
@@ -398,7 +398,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async getPendingPurchases(): Promise<Array<Purchase>> {
+    async getPendingPurchases(): Promise<Array<[bigint, Purchase]>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getPendingPurchases();

@@ -1,40 +1,82 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-15T20:45:15.047Z",
+  "generatedAt": "2026-02-17T19:11:13.978Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 0,
+    "total": 4,
+    "implemented": 4,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Remove all backend authorization/permission enforcement so that no canister method traps or rejects based on caller identity or role. Specifically, delete the AccessControl-based guards and any \"Unauthorized\" traps from all methods that currently check admin/user permissions (e.g., purchase admin actions, product admin actions, and user profile methods).",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "summary": "Add a horizontally scrolling yellow banner to the top of the Login screen that displays a German discontinuation notice stating the shop is discontinued and will not be worked on anymore.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/Banner.tsx",
+          "frontend/src/index.css",
+          "frontend/src/pages/LoginPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/index.css",
+          "frontend/src/pages/LoginPage.tsx"
+        ]
       },
       {
         "id": "REQ-2",
-        "summary": "Ensure the backend still compiles and the public Candid interface remains usable by the existing frontend after removing authorization checks (i.e., keep method names and parameter/return types compatible unless strictly necessary). If any AccessControl-only endpoints become unnecessary, either keep them as non-enforcing/no-op helpers or adjust them in a way that does not break the current frontend build.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "summary": "Disable logging in from the Login screen so users cannot sign in (no successful login via button click or Enter key).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/LoginPage.tsx",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/LoginPage.tsx",
+          "frontend/src/App.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Ensure previously persisted client auth state cannot be used to bypass the discontinued state (if a user is already authenticated in local storage, they should be forced to a non-authenticated/discontinued login view).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useCustomAuth.ts",
+          "frontend/src/pages/LoginPage.tsx",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useCustomAuth.ts",
+          "frontend/src/pages/LoginPage.tsx",
+          "frontend/src/App.tsx"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Implement a cohesive 'discontinued/caution' visual theme for the login discontinuation experience (typography, spacing, and banner styling) consistent with the existing warm orange/amber palette; do not introduce blue/purple as primary accents.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/LoginPage.tsx",
+          "frontend/src/components/Banner.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/LoginPage.tsx"
+        ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
+    "caffeine.lock.json",
     "feature_evidence.json",
+    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
+    "frontend/src/App.tsx",
+    "frontend/src/config.ts",
+    "frontend/src/hooks/useCustomAuth.ts",
+    "frontend/src/index.css",
+    "frontend/src/pages/LoginPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

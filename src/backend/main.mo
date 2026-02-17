@@ -8,6 +8,8 @@ import Iter "mo:core/Iter";
 import Order "mo:core/Order";
 import MixinStorage "blob-storage/Mixin";
 
+
+
 actor {
   include MixinStorage();
 
@@ -63,7 +65,7 @@ actor {
   let products = Map.empty<Text, Product>();
   let pendingPurchases = Map.empty<Nat, Purchase>();
   let confirmedPurchases = Map.empty<Nat, Purchase>();
-  var purchaseId : Nat = 0;
+  var purchaseCounter : Nat = 0;
   var isInitialized : Bool = false;
   let userProfiles = Map.empty<Principal, UserProfile>();
 
@@ -102,7 +104,6 @@ actor {
     };
   };
 
-  // Only called once during initial install/upgrade
   private func seedInitialProducts() : () {
     let initialProducts : [(Text, Product)] = [
       (
@@ -209,6 +210,10 @@ actor {
   };
 
   public shared ({ caller }) func buyProduct(productName : Text) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can buy products");
+    };
+
     let username = switch (getUsernameForCaller(caller)) {
       case (?u) { u };
       case null { caller.toText() };
@@ -228,23 +233,33 @@ actor {
           confirmed = false;
         };
 
-        let currentId = purchaseId;
-        purchaseId += 1;
+        let currentId = purchaseCounter;
+        purchaseCounter += 1;
         pendingPurchases.add(currentId, newPurchase);
         currentId;
       };
     };
   };
 
-  public query ({ caller }) func getPendingPurchases() : async [Purchase] {
-    pendingPurchases.values().toArray().sort();
+  public query ({ caller }) func getPendingPurchases() : async [(Nat, Purchase)] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view pending purchases");
+    };
+    pendingPurchases.toArray();
   };
 
-  public query ({ caller }) func getConfirmedPurchases() : async [Purchase] {
-    confirmedPurchases.values().toArray().sort();
+  public query ({ caller }) func getConfirmedPurchases() : async [(Nat, Purchase)] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view confirmed purchases");
+    };
+    confirmedPurchases.toArray();
   };
 
   public shared ({ caller }) func acceptPurchase(purchaseIdToAccept : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can accept purchases");
+    };
+
     switch (pendingPurchases.get(purchaseIdToAccept)) {
       case (null) { Runtime.trap("Purchase not found!") };
       case (?purchase) {
@@ -271,8 +286,12 @@ actor {
   };
 
   public shared ({ caller }) func declinePurchase(purchaseIdToDecline : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can decline purchases");
+    };
+
     switch (pendingPurchases.get(purchaseIdToDecline)) {
-      case (null) { Runtime.trap("Purchase not found!") };
+      case (null) { () }; // Nothing to do if ID not present
       case (?_) {
         pendingPurchases.remove(purchaseIdToDecline);
       };
@@ -280,6 +299,10 @@ actor {
   };
 
   public shared ({ caller }) func deleteConfirmedPurchase(purchaseIdToDelete : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can delete confirmed purchases");
+    };
+
     switch (confirmedPurchases.get(purchaseIdToDelete)) {
       case (null) { Runtime.trap("Purchase not found!") };
       case (?purchase) {
@@ -305,6 +328,10 @@ actor {
   };
 
   public shared ({ caller }) func addProduct(name : Text, price : Float, category : Category, imageData : ?Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can add products");
+    };
+
     let newProduct : Product = {
       name;
       price;
@@ -317,6 +344,10 @@ actor {
   };
 
   public shared ({ caller }) func deleteProduct(productName : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can delete products");
+    };
+
     switch (products.get(productName)) {
       case (null) { Runtime.trap("Product not found!") };
       case (?_) {
@@ -326,14 +357,23 @@ actor {
   };
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view profiles");
+    };
     userProfiles.get(caller);
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own profile");
+    };
     userProfiles.get(user);
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can save profiles");
+    };
     userProfiles.add(caller, profile);
   };
 

@@ -1,28 +1,27 @@
 import { Heart } from 'lucide-react';
 
 export default function Footer() {
-  const appIdentifier = typeof window !== 'undefined' 
-    ? encodeURIComponent(window.location.hostname)
-    : 'unknown-app';
+  const currentYear = new Date().getFullYear();
+  const appIdentifier = encodeURIComponent(
+    typeof window !== 'undefined' ? window.location.hostname : 'unknown-app'
+  );
 
   return (
-    <footer className="border-t border-border mt-16 py-8 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
-      <div className="container mx-auto px-4">
-        <div className="text-center text-sm text-muted-foreground">
-          <p className="flex items-center justify-center gap-2">
-            © {new Date().getFullYear()}. Built with{' '}
-            <Heart className="w-4 h-4 text-red-500 fill-red-500" />
-            {' '}using{' '}
-            <a
-              href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${appIdentifier}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline font-medium bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent"
-            >
-              caffeine.ai
-            </a>
-          </p>
-        </div>
+    <footer className="w-full border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 mt-auto">
+      <div className="container flex h-16 items-center justify-center px-4">
+        <p className="text-sm text-muted-foreground text-center">
+          © {currentYear} · Mit{' '}
+          <Heart className="inline h-4 w-4 text-orange-500 fill-orange-500 mx-1" />
+          erstellt mit{' '}
+          <a
+            href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${appIdentifier}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent hover:underline"
+          >
+            caffeine.ai
+          </a>
+        </p>
       </div>
     </footer>
   );

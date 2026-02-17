@@ -9,6 +9,7 @@ interface AuthState {
   isAdmin: boolean;
   login: (username: string, isAdmin?: boolean) => boolean;
   logout: () => void;
+  clearAuth: () => void;
 }
 
 export const useCustomAuth = create<AuthState>()(
@@ -35,9 +36,24 @@ export const useCustomAuth = create<AuthState>()(
           isAdmin: false,
         });
       },
+      clearAuth: () => {
+        set({
+          username: null,
+          isAuthenticated: false,
+          isAdmin: false,
+        });
+      },
     }),
     {
       name: 'auth-storage',
+      // Clear any persisted auth state on rehydrate in discontinued mode
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.username = null;
+          state.isAuthenticated = false;
+          state.isAdmin = false;
+        }
+      },
     }
   )
 );

@@ -1,4 +1,89 @@
 {
   "kind": "feature_evidence_report",
-  "features": []
+  "features": [
+    {
+      "featureId": "feature-add-a-horizontally-scrolling-yellow-banner-to-the-top-of-the-login-screen-that-displays-a-german-discontinuation-notice-stating-the-shop-is-discontinued-and-will-not-be-worked-on-anymore",
+      "featureTitle": "Add a horizontally scrolling yellow banner to the top of the Login screen that displays a German discontinuation notice stating the shop is discontinued and will not be worked on anymore.",
+      "files": [
+        "frontend/src/index.css",
+        "frontend/src/pages/LoginPage.tsx"
+      ],
+      "components": [
+        "authorization@3.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-disable-logging-in-from-the-login-screen-so-users-cannot-sign-in-no-successful-login-via-button-click-or-enter-key",
+      "featureTitle": "Disable logging in from the Login screen so users cannot sign in (no successful login via button click or Enter key).",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/pages/LoginPage.tsx"
+      ],
+      "components": [
+        "authorization@3.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-previously-persisted-client-auth-state-cannot-be-used-to-bypass-the-discontinued-state-if-a-user-is-already-authenticated-in-local-storage-they-should-be-forced-to-a-non-authenticated-discontinued-login-view",
+      "featureTitle": "Ensure previously persisted client auth state cannot be used to bypass the discontinued state (if a user is already authenticated in local storage, they should be forced to a non-authenticated/discontinued login view).",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/hooks/useCustomAuth.ts",
+        "frontend/src/pages/LoginPage.tsx"
+      ],
+      "components": [
+        "authorization@3.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-a-cohesive-discontinued-caution-visual-theme-for-the-login-discontinuation-experience-typography-spacing-and-banner-styling-consistent-with-the-existing-warm-orange-amber-palette-do-not-introduce-blue-purple-as-primary-accents",
+      "featureTitle": "Implement a cohesive 'discontinued/caution' visual theme for the login discontinuation experience (typography, spacing, and banner styling) consistent with the existing warm orange/amber palette; do not introduce blue/purple as primary accents.",
+      "files": [
+        "frontend/src/pages/LoginPage.tsx"
+      ],
+      "components": [
+        "authorization@3.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    }
+  ]
 }

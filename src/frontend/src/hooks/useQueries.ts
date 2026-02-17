@@ -1,33 +1,244 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { Category, Product, UserProfile, Purchase, UserRole } from '../backend';
+import { Category, Product, UserProfile, Purchase } from '../backend';
 import { toast } from 'sonner';
+import { UserRole } from '../backend';
 
-// Hook to login with username - calls backend login() which registers username and returns role
-export function useLoginWithUsername() {
+export function useGetProductsByCategory(category: Category) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<Product[]>({
+    queryKey: ['products', category],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getProductsByCategory(category);
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetAllProducts() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<Product[]>({
+    queryKey: ['products', 'all'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllProducts();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useBuyProduct() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (username: string) => {
-      if (!actor) throw new Error('Actor not available');
+    mutationFn: async (productName: string) => {
+      if (!actor) throw new Error('Actor nicht verfügbar');
+      return actor.buyProduct(productName);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Kaufanfrage gesendet', {
+        description: 'Ihre Anfrage wird vom Administrator geprüft.',
+      });
+    },
+    onError: (error: any) => {
+      console.error('Kauffehler:', error);
+      toast.error('Kaufanfrage fehlgeschlagen', {
+        description: error?.message || 'Ein unbekannter Fehler ist aufgetreten',
+      });
+    },
+  });
+}
+
+type PurchaseWithId = {
+  id: bigint;
+  purchase: Purchase;
+};
+
+export function useGetPendingPurchases() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<PurchaseWithId[]>({
+    queryKey: ['purchases', 'pending'],
+    queryFn: async () => {
+      if (!actor) return [];
+      const tuples = await actor.getPendingPurchases();
+      return tuples.map(([id, purchase]) => ({ id, purchase }));
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useGetConfirmedPurchases() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<PurchaseWithId[]>({
+    queryKey: ['purchases', 'confirmed'],
+    queryFn: async () => {
+      if (!actor) return [];
+      const tuples = await actor.getConfirmedPurchases();
+      return tuples.map(([id, purchase]) => ({ id, purchase }));
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useAcceptPurchase() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (purchaseId: bigint) => {
+      if (!actor) throw new Error('Actor nicht verfügbar');
+      return actor.acceptPurchase(purchaseId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['purchases'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Kaufanfrage angenommen', {
+        description: 'Die Anfrage wurde erfolgreich bestätigt.',
+      });
+    },
+    onError: (error: any) => {
+      console.error('Fehler beim Annehmen:', error);
+      toast.error('Fehler beim Annehmen der Anfrage', {
+        description: 'Wenn dieser Fehler wiederholt auftritt, lehnen Sie die Anfrage bitte ab, um sie zu löschen. Sie ist wahrscheinlich fehlerhaft.',
+      });
+    },
+  });
+}
+
+export function useDeclinePurchase() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (purchaseId: bigint) => {
+      if (!actor) throw new Error('Actor nicht verfügbar');
+      return actor.declinePurchase(purchaseId);
+    },
+    onMutate: async (purchaseId: bigint) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['purchases', 'pending'] });
+
+      // Snapshot previous value
+      const previousPurchases = queryClient.getQueryData<PurchaseWithId[]>(['purchases', 'pending']);
+
+      // Optimistically remove the purchase
+      queryClient.setQueryData<PurchaseWithId[]>(['purchases', 'pending'], (old) => {
+        if (!old) return [];
+        return old.filter((item) => item.id !== purchaseId);
+      });
+
+      return { previousPurchases };
+    },
+    onSuccess: () => {
+      // Still invalidate to ensure backend state is synced
+      queryClient.invalidateQueries({ queryKey: ['purchases'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Kaufanfrage abgelehnt', {
+        description: 'Die Anfrage wurde entfernt.',
+      });
+    },
+    onError: (error: any, purchaseId, context) => {
+      // Do NOT rollback - keep the purchase removed from UI
+      console.error('Fehler beim Ablehnen (wird trotzdem ausgeblendet):', error);
       
-      // Call backend login() - registers username and returns user role
-      const role = await actor.login(username);
-      // Wait for backend to process
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return role;
+      // Still try to refresh to clean up any backend state
+      queryClient.invalidateQueries({ queryKey: ['purchases'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      
+      toast.info('Anfrage wurde ausgeblendet', {
+        description: 'Die Anfrage wurde aus der Ansicht entfernt.',
+      });
     },
-    onSuccess: async () => {
-      // Invalidate user profile and admin status
-      await queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-      await queryClient.invalidateQueries({ queryKey: ['isAdmin'] });
-      await queryClient.invalidateQueries({ queryKey: ['products'] });
-      // Wait for queries to settle
-      await new Promise(resolve => setTimeout(resolve, 300));
+  });
+}
+
+export function useDeleteConfirmedPurchase() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (purchaseId: bigint) => {
+      if (!actor) throw new Error('Actor nicht verfügbar');
+      return actor.deleteConfirmedPurchase(purchaseId);
     },
-    onError: (error: Error) => {
-      console.error('Login error:', error);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['purchases'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Kauf gelöscht', {
+        description: 'Der bestätigte Kauf wurde entfernt.',
+      });
+    },
+    onError: (error: any) => {
+      console.error('Fehler beim Löschen:', error);
+      
+      // Refresh lists even on error to handle missing product gracefully
+      queryClient.invalidateQueries({ queryKey: ['purchases'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      
+      const errorMessage = error?.message || 'Ein unbekannter Fehler ist aufgetreten';
+      toast.error('Fehler beim Löschen', {
+        description: errorMessage,
+      });
+    },
+  });
+}
+
+export function useCreateProduct() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      name: string;
+      price: number;
+      category: Category;
+      imageData: string | null;
+    }) => {
+      if (!actor) throw new Error('Actor nicht verfügbar');
+      return actor.addProduct(params.name, params.price, params.category, params.imageData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Produkt erstellt', {
+        description: 'Das neue Produkt wurde hinzugefügt.',
+      });
+    },
+    onError: (error: any) => {
+      console.error('Fehler beim Erstellen:', error);
+      toast.error('Fehler beim Erstellen des Produkts', {
+        description: error?.message || 'Ein unbekannter Fehler ist aufgetreten',
+      });
+    },
+  });
+}
+
+export function useDeleteProduct() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (productName: string) => {
+      if (!actor) throw new Error('Actor nicht verfügbar');
+      return actor.deleteProduct(productName);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast.success('Produkt gelöscht', {
+        description: 'Das Produkt wurde entfernt.',
+      });
+    },
+    onError: (error: any) => {
+      console.error('Fehler beim Löschen:', error);
+      toast.error('Fehler beim Löschen des Produkts', {
+        description: error?.message || 'Ein unbekannter Fehler ist aufgetreten',
+      });
     },
   });
 }
@@ -38,20 +249,11 @@ export function useGetCallerUserProfile() {
   const query = useQuery<UserProfile | null>({
     queryKey: ['currentUserProfile'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      try {
-        return await actor.getCallerUserProfile();
-      } catch (error: any) {
-        // If user is not registered yet, return null instead of throwing
-        if (error.message?.includes('Unauthorized') || error.message?.includes('username')) {
-          return null;
-        }
-        throw error;
-      }
+      if (!actor) throw new Error('Actor nicht verfügbar');
+      return actor.getCallerUserProfile();
     },
     enabled: !!actor && !actorFetching,
     retry: false,
-    staleTime: 5 * 60 * 1000,
   });
 
   return {
@@ -67,306 +269,31 @@ export function useSaveCallerUserProfile() {
 
   return useMutation({
     mutationFn: async (profile: UserProfile) => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor) throw new Error('Actor nicht verfügbar');
       return actor.saveCallerUserProfile(profile);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-      toast.success('Profile saved successfully');
+      toast.success('Profil gespeichert', {
+        description: 'Ihr Profil wurde erfolgreich aktualisiert.',
+      });
     },
-    onError: (error: Error) => {
-      console.error('Save error:', error);
-      toast.error(`Save error: ${error.message}`);
+    onError: (error: any) => {
+      console.error('Fehler beim Speichern des Profils:', error);
+      toast.error('Fehler beim Speichern des Profils', {
+        description: error?.message || 'Ein unbekannter Fehler ist aufgetreten',
+      });
     },
   });
 }
 
-export function useIsCallerAdmin() {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  return useQuery<boolean>({
-    queryKey: ['isAdmin'],
-    queryFn: async () => {
-      if (!actor) return false;
-      try {
-        return await actor.isCallerAdmin();
-      } catch (error) {
-        // If there's an error checking admin status, assume not admin
-        return false;
-      }
-    },
-    enabled: !!actor && !actorFetching,
-    staleTime: 5 * 60 * 1000,
-    retry: false,
-  });
-}
-
-export function useGetProductsByCategory(category: Category) {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  return useQuery<Product[]>({
-    queryKey: ['products', category],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      try {
-        const products = await actor.getProductsByCategory(category);
-        return products;
-      } catch (error: any) {
-        console.error('Error loading products:', error);
-        // Return empty array instead of throwing to prevent UI errors
-        return [];
-      }
-    },
-    enabled: !!actor && !actorFetching,
-    staleTime: 30 * 1000,
-    retry: 3,
-    retryDelay: 1000,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-  });
-}
-
-export function useGetAllProducts() {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  return useQuery<Product[]>({
-    queryKey: ['products', 'all'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      try {
-        const products = await actor.getAllProducts();
-        return products;
-      } catch (error: any) {
-        console.error('Error loading all products:', error);
-        // Return empty array instead of throwing to prevent UI errors
-        return [];
-      }
-    },
-    enabled: !!actor && !actorFetching,
-    staleTime: 30 * 1000,
-    retry: 3,
-    retryDelay: 1000,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-  });
-}
-
-export function useBuyProduct() {
+export function useLoginWithUsername() {
   const { actor } = useActor();
-  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (productName: string) => {
-      if (!actor) throw new Error('Actor not available');
-      await actor.buyProduct(productName);
-      // Wait for backend to process
-      await new Promise(resolve => setTimeout(resolve, 500));
-    },
-    onSuccess: async () => {
-      // Invalidate and refetch all related queries
-      await queryClient.invalidateQueries({ queryKey: ['products'] });
-      await queryClient.invalidateQueries({ queryKey: ['pendingPurchases'] });
-      await queryClient.invalidateQueries({ queryKey: ['confirmedPurchases'] });
-      // Force immediate refetch
-      await queryClient.refetchQueries({ queryKey: ['products'] });
-      await queryClient.refetchQueries({ queryKey: ['pendingPurchases'] });
-      toast.success('Purchase request sent successfully!');
-    },
-    onError: (error: Error) => {
-      console.error('Purchase error:', error);
-      // Display backend error message directly
-      toast.error(error.message || 'Failed to send purchase request');
-    },
-  });
-}
-
-// Backend now returns purchases with their stable IDs
-export interface PurchaseWithId {
-  id: bigint;
-  purchase: Purchase;
-}
-
-export function useGetPendingPurchases() {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  return useQuery<PurchaseWithId[]>({
-    queryKey: ['pendingPurchases'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      const purchases = await actor.getPendingPurchases();
-      // Backend returns array of Purchase; we need to track them by stable ID
-      // For now, map with index as temporary ID until backend provides stable IDs
-      return purchases.map((purchase, index) => ({
-        id: BigInt(index),
-        purchase,
-      }));
-    },
-    enabled: !!actor && !actorFetching,
-    staleTime: 10 * 1000,
-    refetchInterval: 15 * 1000,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-  });
-}
-
-export function useGetConfirmedPurchases() {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  return useQuery<PurchaseWithId[]>({
-    queryKey: ['confirmedPurchases'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      const purchases = await actor.getConfirmedPurchases();
-      // Backend returns array of Purchase; we need to track them by stable ID
-      // For now, map with index as temporary ID until backend provides stable IDs
-      return purchases.map((purchase, index) => ({
-        id: BigInt(index),
-        purchase,
-      }));
-    },
-    enabled: !!actor && !actorFetching,
-    staleTime: 10 * 1000,
-    refetchInterval: 15 * 1000,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-  });
-}
-
-export function useAcceptPurchase() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (purchaseId: bigint) => {
-      if (!actor) throw new Error('Actor not available');
-      await actor.acceptPurchase(purchaseId);
-      // Wait for backend to process
-      await new Promise(resolve => setTimeout(resolve, 500));
-    },
-    onSuccess: async () => {
-      // Invalidate and force refetch
-      await queryClient.invalidateQueries({ queryKey: ['pendingPurchases'] });
-      await queryClient.invalidateQueries({ queryKey: ['confirmedPurchases'] });
-      await queryClient.invalidateQueries({ queryKey: ['products'] });
-      await queryClient.refetchQueries({ queryKey: ['pendingPurchases'] });
-      await queryClient.refetchQueries({ queryKey: ['confirmedPurchases'] });
-      await queryClient.refetchQueries({ queryKey: ['products'] });
-      toast.success('Purchase accepted and product marked as sold out!');
-    },
-    onError: (error: Error) => {
-      console.error('Accept error:', error);
-      toast.error(error.message || 'Failed to accept purchase');
-    },
-  });
-}
-
-export function useDeclinePurchase() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (purchaseId: bigint) => {
-      if (!actor) throw new Error('Actor not available');
-      await actor.declinePurchase(purchaseId);
-      // Wait for backend to process
-      await new Promise(resolve => setTimeout(resolve, 500));
-    },
-    onSuccess: async () => {
-      // Invalidate and force refetch
-      await queryClient.invalidateQueries({ queryKey: ['pendingPurchases'] });
-      await queryClient.invalidateQueries({ queryKey: ['products'] });
-      await queryClient.refetchQueries({ queryKey: ['pendingPurchases'] });
-      await queryClient.refetchQueries({ queryKey: ['products'] });
-      toast.success('Purchase request declined!');
-    },
-    onError: (error: Error) => {
-      console.error('Decline error:', error);
-      toast.error(error.message || 'Failed to decline purchase');
-    },
-  });
-}
-
-export function useDeleteConfirmedPurchase() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (purchaseId: bigint) => {
-      if (!actor) throw new Error('Actor not available');
-      await actor.deleteConfirmedPurchase(purchaseId);
-      // Wait for backend to process
-      await new Promise(resolve => setTimeout(resolve, 500));
-    },
-    onSuccess: async () => {
-      // Invalidate and force refetch
-      await queryClient.invalidateQueries({ queryKey: ['confirmedPurchases'] });
-      await queryClient.invalidateQueries({ queryKey: ['products'] });
-      await queryClient.refetchQueries({ queryKey: ['confirmedPurchases'] });
-      await queryClient.refetchQueries({ queryKey: ['products'] });
-      toast.success('Confirmed purchase deleted successfully!');
-    },
-    onError: async (error: Error) => {
-      console.error('Delete error:', error);
-      
-      // If the error is about product not found, still try to refresh the lists
-      // so the UI updates and the deleted purchase disappears
-      if (error.message?.includes('Product not found')) {
-        await queryClient.invalidateQueries({ queryKey: ['confirmedPurchases'] });
-        await queryClient.invalidateQueries({ queryKey: ['products'] });
-        await queryClient.refetchQueries({ queryKey: ['confirmedPurchases'] });
-        await queryClient.refetchQueries({ queryKey: ['products'] });
-        toast.success('Confirmed purchase deleted successfully!');
-      } else {
-        toast.error(error.message || 'Failed to delete purchase');
-      }
-    },
-  });
-}
-
-// Product management hooks
-export function useCreateProduct() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (params: { name: string; price: number; category: Category; imageData: string | null }) => {
-      if (!actor) throw new Error('Actor not available');
-      await actor.addProduct(params.name, params.price, params.category, params.imageData);
-      // Wait for backend to process
-      await new Promise(resolve => setTimeout(resolve, 500));
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['products'] });
-      await queryClient.refetchQueries({ queryKey: ['products'] });
-      toast.success('Product created successfully!');
-    },
-    onError: (error: Error) => {
-      console.error('Create product error:', error);
-      // Display backend error message directly
-      toast.error(error.message || 'Failed to create product');
-    },
-  });
-}
-
-export function useDeleteProduct() {
-  const { actor } = useActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (productName: string) => {
-      if (!actor) throw new Error('Actor not available');
-      await actor.deleteProduct(productName);
-      // Wait for backend to process
-      await new Promise(resolve => setTimeout(resolve, 500));
-    },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['products'] });
-      await queryClient.refetchQueries({ queryKey: ['products'] });
-      toast.success('Product deleted successfully!');
-    },
-    onError: (error: Error) => {
-      console.error('Delete product error:', error);
-      toast.error(error.message || 'Failed to delete product');
+    mutationFn: async (username: string): Promise<UserRole> => {
+      if (!actor) throw new Error('Actor nicht verfügbar');
+      return actor.login(username);
     },
   });
 }

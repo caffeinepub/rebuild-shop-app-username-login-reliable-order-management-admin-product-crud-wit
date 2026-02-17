@@ -1,6 +1,101 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Frontend plan: no changes required for backend-only authorization removal",
-  "requirements": []
+  "title": "Discontinued shop login notice and sign-in lockout",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Add a pinned, full-width yellow marquee banner to the top of the Login screen with a German discontinuation notice.",
+      "acceptanceCriteria": [
+        "When the login screen renders, a full-width yellow banner is pinned at the top of the login view.",
+        "The banner text scrolls horizontally (marquee-style) continuously.",
+        "The banner message text is in German and clearly communicates the shop is discontinued and will not be worked on anymore.",
+        "The banner remains readable in both light and dark mode (sufficient contrast)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Banner.tsx",
+          "operation": "modify",
+          "description": "Implement a reusable DiscontinuedBanner component that renders the German discontinuation message and supports continuous horizontal scrolling (marquee-style). Ensure high-contrast yellow/amber styling that remains readable in light/dark mode."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add the minimal CSS animation/keyframes and utility classes needed to achieve smooth, continuous horizontal marquee scrolling for the banner while preserving legibility in light and dark themes."
+        },
+        {
+          "path": "frontend/src/pages/LoginPage.tsx",
+          "operation": "modify",
+          "description": "Wire the DiscontinuedBanner into the LoginPage so it is pinned at the very top of the login view and spans full width; keep the rest of the login content below it. Use existing shadcn-ui layout components (e.g., Card) for consistent composition; verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Disable all login interactions on the Login screen (no button, no Enter key, and no backend login call), and prevent any non-authenticated navigation into Shop/Admin views.",
+      "acceptanceCriteria": [
+        "The login form cannot trigger any login action (no backend login mutation call is executed).",
+        "Login controls (input and submit button) are visually disabled and non-interactive, or replaced with a clear disabled-state UI.",
+        "Pressing Enter in the username field does not log the user in.",
+        "No route or UI path allows a non-authenticated user to enter the Shop or Admin pages."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/LoginPage.tsx",
+          "operation": "modify",
+          "description": "Remove/disable any invocation path that can call the username login mutation (including Enter key handling). Render a clear disabled-state UI for the input and submit button (e.g., disabled controls plus a short explanation in English). Continue composing with existing shadcn-ui components (Button/Card/Alert/Input); verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Introduce a frontend 'discontinued mode' guard so the app always renders the discontinued LoginPage experience and never renders ShopPage/AdminPage, regardless of any auth flags. Ensure there is no UI path that reveals Shop/Admin while discontinued."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Prevent persisted client auth state from bypassing the discontinued state by forcing the app into a non-authenticated discontinued login view and ensuring any clearing action keeps the user on that view.",
+      "acceptanceCriteria": [
+        "If auth state is persisted as authenticated (e.g., from prior sessions), the app does not render ShopPage/AdminPage and instead shows the discontinued login experience.",
+        "Any displayed logout/clear action results in the app remaining on the discontinued login experience with sign-in disabled."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useCustomAuth.ts",
+          "operation": "modify",
+          "description": "Update the persisted auth store behavior so previously saved authenticated state is cleared/ignored while the app is in the discontinued state (e.g., reset auth on rehydrate or provide a dedicated clear function used by the discontinued login view)."
+        },
+        {
+          "path": "frontend/src/pages/LoginPage.tsx",
+          "operation": "modify",
+          "description": "Add a clear-session action (English label) that clears any locally persisted auth state (and any cached client state if applicable) and keeps the user on the discontinued login screen with sign-in still disabled. Compose with existing shadcn-ui Button/Alert components; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Ensure the discontinued-mode guard supersedes any rehydrated authenticated state so the UI cannot flash Shop/Admin content during initial load."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Apply a cohesive discontinued/caution theme to the login discontinuation experience using the existing warm amber/orange palette (no blue/purple primary accents).",
+      "acceptanceCriteria": [
+        "The discontinued login view looks intentional and consistent (banner, card, and any explanatory text share a unified style).",
+        "Primary accents stay within warm amber/yellow/orange tones; no blue/purple dominant accents are introduced."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/LoginPage.tsx",
+          "operation": "modify",
+          "description": "Refine the LoginPage layout and copy to a cohesive discontinued/caution experience: keep all non-banner user-facing text in English, use warm amber/orange styling consistent with the existing palette, and present a clear 'discontinued' explanation alongside the disabled controls. Use existing shadcn-ui components for typography/layout consistency; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/Banner.tsx",
+          "operation": "modify",
+          "description": "Align banner typography, spacing, and colors with the caution theme (warm yellow/amber) while maintaining strong contrast in both themes and keeping the German banner message unchanged."
+        }
+      ]
+    }
+  ]
 }

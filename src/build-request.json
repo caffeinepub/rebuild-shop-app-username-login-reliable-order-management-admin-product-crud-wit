@@ -1,59 +1,92 @@
 {
   "kind": "build_request",
-  "title": "Remove all backend authorization checks so every method is callable without authentication",
-  "priority": "high",
+  "title": "Discontinue shop notice on login and disable sign-in",
+  "projectName": "Discontinued Shop Notice",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Remove all backend authorization/permission enforcement so that no canister method traps or rejects based on caller identity or role. Specifically, delete the AccessControl-based guards and any \"Unauthorized\" traps from all methods that currently check admin/user permissions (e.g., purchase admin actions, product admin actions, and user profile methods).",
-      "target": "backend",
+      "text": "Add a horizontally scrolling yellow banner to the top of the Login screen that displays a German discontinuation notice stating the shop is discontinued and will not be worked on anymore.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5",
-          "msg-8",
-          "msg-10",
-          "msg-11"
+          "msg-1"
         ],
         "quotes": [
-          "the backend auth requests for everything are actually back... could you remove them all?",
-          "you want every backend authentication requirement removed so the backend no longer checks caller identity for any method",
-          "Yes",
-          "Apply"
+          "Add a scrolling yellow banner at the top of the login screen which in your own way/text says that the shop is discontinued and will not be worked on anymore (make the text german"
         ]
       },
       "acceptanceCriteria": [
-        "Calling acceptPurchase/declinePurchase/deleteConfirmedPurchase/addProduct/deleteProduct/getCallerUserProfile/getUserProfile/saveCallerUserProfile no longer traps with any \"Unauthorized\" error for any caller.",
-        "No backend method performs role/permission checks that can block the call based on caller identity."
+        "When the login screen renders, a full-width yellow banner is pinned at the top of the login view.",
+        "The banner text scrolls horizontally (marquee-style) continuously.",
+        "The banner message text is in German and clearly communicates the shop is discontinued and will not be worked on anymore.",
+        "The banner remains readable in both light and dark mode (sufficient contrast)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Ensure the backend still compiles and the public Candid interface remains usable by the existing frontend after removing authorization checks (i.e., keep method names and parameter/return types compatible unless strictly necessary). If any AccessControl-only endpoints become unnecessary, either keep them as non-enforcing/no-op helpers or adjust them in a way that does not break the current frontend build.",
-      "target": "backend",
+      "text": "Disable logging in from the Login screen so users cannot sign in (no successful login via button click or Enter key).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-10",
-          "msg-11"
+          "msg-1"
         ],
         "quotes": [
-          "If yes, I’ll strip all `shared(msg)` auth checks and replace them with plain public functions so nothing requires authentication anymore.",
-          "Apply"
+          "disable logging in"
         ]
       },
       "acceptanceCriteria": [
-        "Backend canister builds successfully after changes.",
-        "Frontend can still generate an actor and call the same backend methods it currently calls without type mismatches at build time.",
-        "No changes introduce new authentication requirements."
+        "The login form cannot trigger any login action (no backend login mutation call is executed).",
+        "Login controls (input and submit button) are visually disabled and non-interactive, or replaced with a clear disabled-state UI.",
+        "Pressing Enter in the username field does not log the user in.",
+        "No route or UI path allows a non-authenticated user to enter the Shop or Admin pages."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Ensure previously persisted client auth state cannot be used to bypass the discontinued state (if a user is already authenticated in local storage, they should be forced to a non-authenticated/discontinued login view).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "disable logging in"
+        ]
+      },
+      "acceptanceCriteria": [
+        "If auth state is persisted as authenticated (e.g., from prior sessions), the app does not render ShopPage/AdminPage and instead shows the discontinued login experience.",
+        "Any displayed logout/clear action results in the app remaining on the discontinued login experience with sign-in disabled."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Implement a cohesive 'discontinued/caution' visual theme for the login discontinuation experience (typography, spacing, and banner styling) consistent with the existing warm orange/amber palette; do not introduce blue/purple as primary accents.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Add a scrolling yellow banner at the top of the login screen"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The discontinued login view looks intentional and consistent (banner, card, and any explanatory text share a unified style).",
+        "Primary accents stay within warm amber/yellow/orange tones; no blue/purple dominant accents are introduced."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
-    "Use English for any user-facing text (including error messages that remain)."
+    "All user-facing text in this build request must be written in English (the banner content itself must remain German).",
+    "Do not edit any files under frontend/src/components/ui (compose them only).",
+    "Do not edit immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
+    "Backend remains single-actor; do not introduce additional backend services."
   ],
   "nonGoals": [
-    "Do not add new authentication systems or third-party auth providers.",
-    "Do not add new features unrelated to removing backend authorization checks."
+    "Removing or changing backend authorization/role checks in Motoko.",
+    "Rebuilding or expanding shop/admin functionality (products, purchases, accept/decline flows).",
+    "Adding new authentication providers beyond the existing app setup."
   ],
   "imageRequirements": {
     "required": [],
